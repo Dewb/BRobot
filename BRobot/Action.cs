@@ -24,7 +24,8 @@ namespace BRobot
         Motion = 9,
         Coordinates = 10,
         PushPop = 11,
-        Tool = 12
+        Tool = 12,
+        DigitalOutput = 13
     }
 
     
@@ -528,7 +529,27 @@ namespace BRobot
 
         public override string ToString()
         {
-            return string.Format("Set tool to {0}", Tool.Name);
+            return string.Format("Set tool to {0}", Tool);
+        }
+    }
+
+    public class ActionDigitalOutput : Action
+    {
+        public string Name;
+        public bool On;
+
+        public ActionDigitalOutput(string name, bool on)
+        {
+            type = ActionType.DigitalOutput;
+
+            Name = name;
+            On = on;
+
+        }
+
+        public override string ToString()
+        {
+            return string.Format("Turn {0} digital output {1}", On ? "on" : "off", Name);
         }
     }
     

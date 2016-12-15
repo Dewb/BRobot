@@ -346,6 +346,11 @@ namespace BRobot
                     ActionWait aw = (ActionWait)action;
                     dec = string.Format("    WaitTime {0};", 0.001 * aw.millis);
                     break;
+
+                case ActionType.DigitalOutput:
+                    ActionDigitalOutput ado = (ActionDigitalOutput)action;
+                    dec = string.Format("    SetDO {0}, {1};", ado.Name, ado.On ? "1": "0");
+                    break;
             }
 
             declaration = dec;
