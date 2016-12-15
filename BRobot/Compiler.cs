@@ -48,6 +48,8 @@ namespace BRobot
             0, 1, 5, 10, 15, 20, 30, 40, 50, 60, 80, 100, 150, 200 
         };
 
+        private static string PredefinedTool = "Tool0";
+
         /// <summary>
         /// Creates a textual program representation of a set of Actions using a brand-specific RobotCursor.
         /// WARNING: this method is EXTREMELY UNSAFE; it performs no IK calculations, assigns default [0,0,0,0] 
@@ -77,6 +79,11 @@ namespace BRobot
             Dictionary<int, string> zoneNames = new Dictionary<int, string>();
             Dictionary<int, string> zoneDecs = new Dictionary<int, string>();
             Dictionary<int, bool> zonePredef = new Dictionary<int, bool>();
+            Dictionary<Tool, string> toolNames = new Dictionary<Tool, string>();
+            Dictionary<Tool, string> toolDecs = new Dictionary<Tool, string>();
+
+            toolNames.Add(new Tool(), PredefinedTool);
+
             // Declarations
             List<string> velocityLines = new List<string>();
             List<string> zoneLines = new List<string>();
@@ -84,6 +91,9 @@ namespace BRobot
             // TARGETS AND INSTRUCTIONS
             List<string> variableLines = new List<string>();
             List<string> instructionLines = new List<string>();
+
+            // TOOLS AND WORK OBJECTS
+            List<string> toolLines = new List<string>();
 
             // DATA GENERATION
             // Use the write robot pointer to generate the data
@@ -101,6 +111,12 @@ namespace BRobot
                     velDecs.Add(writer.speed, writer.GetSpeedDeclaration(writer.speed));
                 }
 
+                if (!toolNames.ContainsKey(writer.tool))
+                {
+                    toolNames.Add(writer.tool, "tool" + (toolNames.Count));
+                    toolDecs.Add(writer.tool, writer.GetToolDeclaration(writer.tool));
+                }
+
                 if (!zoneNames.ContainsKey(writer.zone))
                 {
                     bool predef = PredefinedZones.Contains(writer.zone);
@@ -115,7 +131,7 @@ namespace BRobot
                     variableLines.Add(line);
                 }
 
-                if (GenerateInstructionDeclaration(a, writer, it, velNames, zoneNames, out line))  // there will be a number jump on target-less instructions, but oh well...
+                if (GenerateInstructionDeclaration(a, writer, it, velNames, zoneNames, toolNames, out line))  // there will be a number jump on target-less instructions, but oh well...
                 {
                     instructionLines.Add(line);
                 }
@@ -137,10 +153,13 @@ namespace BRobot
                     zoneLines.Add(string.Format("  CONST zonedata {0}:={1};", zoneNames[z], zoneDecs[z]));
                 }
             }
-
-
-
-
+            foreach (Tool t in toolNames.Keys)
+            {
+                if (toolNames[t] != PredefinedTool)
+                {
+                    toolLines.Add(string.Format("  PERS tooldata {0}:={1};", toolNames[t], toolDecs[t]));
+                }
+            }
 
 
             //foreach (Action a in actions)
@@ -213,6 +232,14 @@ namespace BRobot
             module.Add("");
 
             // VARIABLE DECLARATIONS
+
+            // Tools
+            if (toolLines.Count != 0)
+            {
+                module.AddRange(toolLines);
+                module.Add("");
+            }
+
             // Velocities
             if (velocityLines.Count != 0)
             {
@@ -285,7 +312,7 @@ namespace BRobot
 
         static private bool GenerateInstructionDeclaration(
             Action action, RobotCursorABB cursor, int id, 
-            Dictionary<int, string> velNames, Dictionary<int, string> zoneNames, 
+            Dictionary<int, string> velNames, Dictionary<int, string> zoneNames, Dictionary<Tool, string> toolNames,
             out string declaration)
         {
             string dec = null;
@@ -294,18 +321,20 @@ namespace BRobot
                 case ActionType.Translation:
                 case ActionType.Rotation:
                 case ActionType.Transformation:
-                    dec = string.Format("    {0} target{1},{2},{3},Tool0\\WObj:=WObj0;",
+                    dec = string.Format("    {0} target{1},{2},{3},{4}\\WObj:=WObj0;",
                         cursor.motionType == MotionType.Joint ? "MoveJ" : "MoveL",
                         id,
                         velNames[cursor.speed],
-                        zoneNames[cursor.zone]);
+                        zoneNames[cursor.zone],
+                        toolNames[cursor.tool]);
                     break;
 
                 case ActionType.Joints:
-                    dec = string.Format("    MoveAbsJ target{0},{1},{2},Tool0\\WObj:=WObj0;",
+                    dec = string.Format("    MoveAbsJ target{0},{1},{2},{3}\\WObj:=WObj0;",
                         id,
                         velNames[cursor.speed],
-                        zoneNames[cursor.zone]);
+                        zoneNames[cursor.zone],
+                        toolNames[cursor.tool]);
                     break;
 
                 case ActionType.Message:

@@ -30,9 +30,9 @@ namespace BRobot
         public int zone;
         public MotionType motionType;
         public ReferenceCS referenceCS;
+        public Tool tool;
         protected bool initialized = false;
         private bool applyImmediately = false;  // when an action is issued to this cursor, apply it immediately?
-
         
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace BRobot
         public abstract bool ApplyAction(ActionJoints action);
         public abstract bool ApplyAction(ActionMessage action);
         public abstract bool ApplyAction(ActionWait action);
-
+        public abstract bool ApplyAction(ActionTool action);
         
 
         /// <summary>
@@ -108,8 +108,8 @@ namespace BRobot
             { typeof (ActionTransformation),            (i, rc) => rc.ApplyAction((ActionTransformation) i) },
             { typeof (ActionJoints),                    (i, rc) => rc.ApplyAction((ActionJoints) i) },
             { typeof (ActionMessage),                   (i, rc) => rc.ApplyAction((ActionMessage) i) },
-            { typeof (ActionWait),                      (i, rc) => rc.ApplyAction((ActionWait) i) }
-            
+            { typeof (ActionWait),                      (i, rc) => rc.ApplyAction((ActionWait) i) },
+            { typeof (ActionTool),                      (i, rc) => rc.ApplyAction((ActionTool) i) }
         };
 
         /// <summary>
@@ -643,6 +643,17 @@ namespace BRobot
             return true;
         }
 
+        /// <summary>
+        /// Apply Tool Action.
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public override bool ApplyAction(ActionTool action)
+        {
+            tool = action.Tool;
+            return true;
+        }
+
         
 
 
@@ -676,6 +687,21 @@ namespace BRobot
             // Default speed declarations in ABB always use 500 deg/s as rot speed, but it feels too fast (and scary). 
             // Using the same value as lin motion here.
             return string.Format("[{0},{1},{2},{3}]", speed, speed, 5000, 1000);
+        }
+
+        public string GetToolDeclaration(Tool tool)
+        {
+            return string.Format("[{0},[{1},{2}],[{3},{4},{5},{6},{7},{8}]]", 
+                                 tool.RobotHold ? "TRUE" : "FALSE",
+                                 tool.CenterPoint,
+                                 tool.Orientation,
+                                 tool.Mass,
+                                 tool.CenterOfGravity,
+                                 tool.AxesOfMoment,
+                                 tool.InertiaX,
+                                 tool.InertiaY,
+                                 tool.InertiaZ
+                                );
         }
 
         public string GetSpeedValue()

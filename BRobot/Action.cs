@@ -23,7 +23,8 @@ namespace BRobot
         Zone = 8,
         Motion = 9,
         Coordinates = 10,
-        PushPop = 11
+        PushPop = 11,
+        Tool = 12
     }
 
     
@@ -138,7 +139,10 @@ namespace BRobot
             return new ActionMessage(msg);
         }
 
-
+        public static ActionTool Tool(Tool tool)
+        {
+            return new ActionTool(tool);
+        }
 
     }
 
@@ -508,6 +512,23 @@ namespace BRobot
         public override string ToString()
         {
             return string.Format("Wait {0} ms", millis);
+        }
+    }
+
+    public class ActionTool : Action
+    {
+        public Tool Tool;
+
+        public ActionTool(Tool tool)
+        {
+            type = ActionType.Tool;
+
+            Tool = tool;
+        }
+
+        public override string ToString()
+        {
+            return string.Format("Set tool to {0}", Tool.Name);
         }
     }
     
