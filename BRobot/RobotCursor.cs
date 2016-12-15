@@ -90,6 +90,7 @@ namespace BRobot
         public abstract bool ApplyAction(ActionMessage action);
         public abstract bool ApplyAction(ActionWait action);
         public abstract bool ApplyAction(ActionTool action);
+        public abstract bool ApplyAction(ActionDigitalOutput action);
         
 
         /// <summary>
@@ -110,7 +111,8 @@ namespace BRobot
             { typeof (ActionMessage),                   (i, rc) => rc.ApplyAction((ActionMessage) i) },
             { typeof (ActionWait),                      (i, rc) => rc.ApplyAction((ActionWait) i) },
             { typeof (ActionTool),                      (i, rc) => rc.ApplyAction((ActionTool) i) }
-        };
+            { typeof (ActionDigitalOutput),             (i, rc) => rc.ApplyAction((ActionDigitalOutput) i) }
+      };
 
         /// <summary>
         /// Minimum information necessary to initialize a robot object.
@@ -654,10 +656,15 @@ namespace BRobot
             return true;
         }
 
-        
-
-
-
+        /// <summary>
+        /// Apply DigitalOutput Action.
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public override bool ApplyAction(ActionDigitalOutput action)
+        {
+            return true;
+        }
 
 
 
